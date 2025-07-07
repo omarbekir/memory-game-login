@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google ile Giriş</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; text-align: center; }
+        #login-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        h1 { color: #333; }
+        button { background-color: #4285F4; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; transition: background-color 0.3s; display: inline-flex; align-items: center; }
+        button:hover { background-color: #357ae8; }
+        button img { width: 20px; height: 20px; margin-right: 12px; }
+    </style>
+</head>
+<body>
+    <div id="login-container">
+        <h1>Oyuna Devam Etmek İçin</h1>
+        <button onclick="signInWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo"/>
+            <span>Google ile Giriş Yap</span>
+        </button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhhGhyI10OnjugM7rWO1UGYCRtIlRQhQ8",
+            authDomain: "webapp-5a597.firebaseapp.com",
+            databaseURL: "https://webapp-5a597-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "webapp-5a597",
+            storageBucket: "webapp-5a597.appspot.com",
+            messagingSenderId: "939943586867",
+            appId: "1:939943586867:web:785a385233c16c52a39a62"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithRedirect(provider);
+        }
+
+        // This function runs automatically when the page loads or when Google redirects back to it.
+        auth.getRedirectResult()
+            .then((result) => {
+                // Check if the result contains a user. This means the login was successful.
+                if (result.user) {
+                    const user = result.user;
+                    const userProfile = { 
+                        uid: user.uid, 
+                        displayName: user.displayName, 
+                        email: user.email, 
+                        photoURL: user.photoURL 
+                    };
+                    // Convert user data to a Base64 string to safely pass it in the URL
+                    const jsonString = JSON.stringify(userProfile);
+                    const base64String = btoa(jsonString);
+                    
+                    // Redirect the webview to our custom URL that ActionScript can understand
+                    window.location.href = "as-callback:loginSuccess/" + base64String;
+                }
+            })
+            .catch((error) => {
+                // If there was an error, send it back to ActionScript
+                const base64Error = btoa("CODE: " + error.code + " MESSAGE: " + error.message);
+                window.location.href = "as-callback:loginFailure/" + base64Error;
+            });
+    </script>
+</body>
+</html>
