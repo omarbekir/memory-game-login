@@ -25,6 +25,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
+        console.log("Sayfa yüklendi. Firebase başlatılıyor...");
+
         const firebaseConfig = {
             apiKey: "AIzaSyDhhGhyI10OnjugM7rWO1UGYCRtIlRQhQ8",
             authDomain: "webapp-5a597.firebaseapp.com",
@@ -35,19 +37,27 @@
             appId: "1:939943586867:web:785a385233c16c52a39a62"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase başarıyla başlatıldı.");
+        } catch (e) {
+            console.error("Firebase başlatma hatası:", e);
+        }
+        
         const auth = firebase.auth();
 
         function signInWithGoogle() {
+            console.log("signInWithGoogle fonksiyonu çağrıldı.");
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithRedirect(provider);
         }
 
-        // This function runs automatically when the page loads or when Google redirects back to it.
+        console.log("Yönlendirme sonucu kontrol ediliyor...");
         auth.getRedirectResult()
             .then((result) => {
-                // Check if the result contains a user. This means the login was successful.
+                console.log("getRedirectResult başarılı.", result);
                 if (result.user) {
+                    console.log("Kullanıcı bulundu:", result.user.displayName);
                     const user = result.user;
                     const userProfile = { 
                         uid: user.uid, 
@@ -55,16 +65,17 @@
                         email: user.email, 
                         photoURL: user.photoURL 
                     };
-                    // Convert user data to a Base64 string to safely pass it in the URL
                     const jsonString = JSON.stringify(userProfile);
                     const base64String = btoa(jsonString);
                     
-                    // Redirect the webview to our custom URL that ActionScript can understand
+                    console.log("ActionScript'e yönlendiriliyor...");
                     window.location.href = "as-callback:loginSuccess/" + base64String;
+                } else {
+                    console.log("Yönlendirme sonrası kullanıcı bulunamadı. Bu normal bir durum, butona basılmasını bekliyor.");
                 }
             })
             .catch((error) => {
-                // If there was an error, send it back to ActionScript
+                console.error("getRedirectResult hatası:", error);
                 const base64Error = btoa("CODE: " + error.code + " MESSAGE: " + error.message);
                 window.location.href = "as-callback:loginFailure/" + base64Error;
             });
